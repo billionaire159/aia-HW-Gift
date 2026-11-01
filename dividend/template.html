@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dividend Quality Dashboard</title>
+<style>
+  :root { --bg:#0f141b; --card:#18202b; --ink:#e8edf3; --mute:#8d99a8; --line:#2a3544; --accent:#5b9cff;
+          --pass:#3fb97a; --warn:#e0a43a; --fail:#ef6a5b; --gray:#7b8696; --c1:#5b9cff; --c2:#e0a43a; --c3:#7b8696; --shadow:0 4px 18px rgba(0,0,0,.4); }
+  :root[data-theme="light"] { --bg:#f4f6f9; --card:#ffffff; --ink:#1b2430; --mute:#5d6877; --line:#dde3ea; --accent:#1f5fd1;
+          --pass:#1a7f4b; --warn:#a96a00; --fail:#c0392b; --gray:#6b7685; --c1:#1f5fd1; --c2:#c77d00; --c3:#8a94a3; --shadow:0 4px 18px rgba(0,0,0,.12); }
+  * { box-sizing:border-box; }
+  html, body { margin:0; overflow-x:hidden; }
+  body { background:var(--bg); color:var(--ink); font-family:system-ui,"Segoe UI","Noto Sans Thai",sans-serif; line-height:1.5; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 16px 40px; }
+  header { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); }
+  .top { max-width:1180px; margin:0 auto; padding:10px 16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .top h1 { font-size:1.05rem; margin:0 8px 0 0; }
+  .chip { font-size:.78rem; color:var(--mute); border:1px solid var(--line); border-radius:999px; padding:3px 10px; background:var(--card); }
+  .chip b { color:var(--ink); }
+  .sp { flex:1; }
+  button, select, input[type=search] { background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 12px; font:inherit; font-size:.85rem; }
+  button { cursor:pointer; } button:hover { border-color:var(--accent); } button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  label.ck { font-size:.85rem; display:flex; gap:6px; align-items:center; color:var(--mute); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:14px 0; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .tw { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.86rem; }
+  th, td { padding:7px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; }
+  th { color:var(--mute); font-weight:600; cursor:pointer; user-select:none; } th:hover { color:var(--ink); }
+  tbody tr { cursor:pointer; } tbody tr:hover { background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:.78rem; border:1px solid currentColor; }
+  .Pass { color:var(--pass); } .Reject { color:var(--fail); } .NC { color:var(--warn); }
+  .nd { color:var(--gray); font-style:italic; }
+  .num { cursor:help; border-bottom:1px dotted var(--mute); }
+  .big { font-size:2rem; font-weight:700; line-height:1.2; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+  .kpi { border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .kpi .l { color:var(--mute); font-size:.8rem; }
+  .steps { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  .step h2 { font-size:1.1rem; margin:0 0 4px; } .step .sub { color:var(--mute); font-size:.85rem; margin:0 0 12px; }
+  .chartbox { position:relative; height:280px; } .cnote { color:var(--mute); font-size:.8rem; margin-top:6px; }
+  .gate { border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .gate .res { font-weight:700; }
+  .pass { color:var(--pass); } .fail { color:var(--fail); } .unknown { color:var(--warn); }
+  ul.rs { margin:6px 0 0; padding-left:20px; } .mono { font-family:ui-monospace,Consolas,monospace; font-size:.8rem; color:var(--mute); word-break:break-word; }
+  footer { color:var(--mute); font-size:.8rem; text-align:center; padding:20px 16px 30px; border-top:1px solid var(--line); margin-top:24px; }
+  #tip { position:fixed; z-index:20; max-width:340px; background:var(--card); color:var(--ink); border:1px solid var(--accent); border-radius:10px; padding:10px 12px; font-size:.78rem; box-shadow:var(--shadow); display:none; pointer-events:none; }
+  #tip b { color:var(--accent); } #tip div { margin-top:3px; word-break:break-word; }
+  .pres .wrap { max-width:1000px; } .pres .step { display:none; min-height:70vh; } .pres .step.cur { display:block; }
+  .pres .step h2 { font-size:1.8rem; } .pres .big { font-size:3.2rem; } .pres .kpi .l, .pres .step .sub { font-size:1.05rem; }
+  .pres .gate, .pres td, .pres li { font-size:1.1rem; } .pres .chartbox { height:420px; } .pres #stepbar { display:none; }
+  .help { color:var(--mute); font-size:.78rem; }
+  @media (max-width:640px) { .big { font-size:1.6rem; } .top h1 { width:100%; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Dividend Quality Dashboard</h1>
+    <span class="chip" id="cPrice"></span><span class="chip" id="cBond"></span><span class="chip" id="cCount"></span>
+    <span class="sp"></span>
+    <button id="bScreen" title="ลัด S">Screener (S)</button>
+    <button id="bPres" title="ลัด P">นำเสนอ (P)</button>
+    <button id="bTheme" title="ลัด T">ธีม (T)</button>
+  </div>
+</header>
+<div class="wrap" id="app"></div>
+<footer>
+  <div class="help">คีย์ลัด: S Screener · [ ] หุ้นก่อนหน้า/ถัดไป · 1–4 ไปขั้นที่ · P โหมดนำเสนอ · T ธีมมืด/สว่าง · ชี้หรือแตะตัวเลขเพื่อดูแหล่ง หน่วย และสูตร</div>
+  <div>แหล่งข้อมูล: SETSMART (ไฟล์ที่ผู้สอนแจก) · Yahoo Finance (ราคา ปันผล กลุ่ม) · ThaiBMA (พันธบัตร 10 ปี) · หน้านี้แสดงผลตาม metrics.json ไม่คำนวณใหม่</div>
+  <div><b>เครื่องมือเพื่อการศึกษา ไม่ใช่คำแนะนำการลงทุน</b></div>
+</footer>
+<div id="tip"></div>
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const ST = DATA.stocks, KEYS = Object.keys(ST);
+const $ = s => document.querySelector(s);
+const state = { view:"screen", tk:null, q:"", verdict:"all", grp:"all", g1:false, sort:"verdict", dir:1, page:0, pres:false, step:1, list:KEYS.slice() };
+const PAGE = 100;
+const VORD = { "Pass":0, "Needs clarification":1, "Reject":2 };
+const sym = k => k.replace(".BK", "");
+const vcls = v => v === "Pass" ? "Pass" : v === "Reject" ? "Reject" : "NC";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+
+/* ---------- การแสดงตัวเลข (จัดรูปแบบอย่างเดียว ไม่คำนวณใหม่) ---------- */
+const nf = (v, d) => Number(v).toLocaleString("en-US", { minimumFractionDigits:d, maximumFractionDigits:d });
+function show(m, kind, d) {
+  if (!m) return '<span class="nd">No data</span>';
+  const tipData = esc(JSON.stringify({ u:m.unit, f:m.formula, r:m.reason, s:m.source }));
+  if (m.value == null) return `<span class="num nd" data-tip="${tipData}">No data</span>`;
+  let t;
+  if (kind === "pct") t = nf(m.value * 100, 2) + "%";
+  else if (kind === "x") t = nf(m.value, 2) + " เท่า";
+  else if (kind === "m") t = nf(m.value, 0);
+  else t = nf(m.value, d == null ? 2 : d);
+  return `<span class="num" data-tip="${tipData}">${t}</span>`;
+}
+function cellNull(m) { return m && m.value == null && m.reason ? `<div class="nd" style="font-size:.78rem">${esc(m.reason)}</div>` : ""; }
+
+/* ---------- tooltip ---------- */
+const tip = $("#tip");
+function showTip(el, ev) {
+  let d; try { d = JSON.parse(el.dataset.tip); } catch (e) { return; }
+  tip.innerHTML = `<b>หน่วย</b> ${esc(d.u)}<div><b>สูตร</b> ${esc(d.f)}</div>` + (d.r ? `<div><b>เหตุผลที่ไม่มีค่า</b> ${esc(d.r)}</div>` : "") + `<div><b>แหล่ง</b> ${esc(d.s || "คำนวณจากข้อมูลข้างต้น")}</div>`;
+  tip.style.display = "block";
+  const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = Math.min(window.innerWidth - w - 8, Math.max(8, r.left)), y = r.bottom + 6;
+  if (y + h > window.innerHeight - 8) y = Math.max(8, r.top - h - 6);
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+document.addEventListener("mouseover", e => { const el = e.target.closest(".num"); if (el) showTip(el); });
+document.addEventListener("mouseout", e => { if (e.target.closest(".num")) tip.style.display = "none"; });
+document.addEventListener("click", e => { const el = e.target.closest(".num"); if (el && !e.target.closest("tr[data-tk]")) { showTip(el); e.stopPropagation(); } else if (!el) tip.style.display = "none"; }, true);
+
+/* ---------- Screener ---------- */
+function rowsFiltered() {
+  const q = state.q.trim().toUpperCase();
+  let r = KEYS.filter(k => {
+    const s = ST[k];
+    if (q && !sym(k).includes(q)) return false;
+    if (state.verdict !== "all" && s.verdict.result !== state.verdict) return false;
+    if (state.grp === "fin" && !s.financial_services) return false;
+    if (state.grp === "gen" && s.financial_services) return false;
+    if (state.g1 && s.gates.G1.result !== "pass") return false;
+    return true;
+  });
+  const val = { ticker:k => sym(k), ry:k => ST[k].metrics.reported_yield.value, ny:k => ST[k].metrics.normalized_yield.value,
+    po:k => ST[k].metrics.payout_3y.value, fc:k => ST[k].metrics.fcf_cover_3y.value, verdict:k => VORD[ST[k].verdict.result] };
+  const f = val[state.sort];
+  r.sort((a, b) => {
+    const x = f(a), y = f(b);
+    if (x == null && y == null) return sym(a) < sym(b) ? -1 : 1;
+    if (x == null) return 1; if (y == null) return -1;
+    if (x === y) { const ya = ST[a].metrics.normalized_yield.value, yb = ST[b].metrics.normalized_yield.value; return (yb == null ? -1 : yb) - (ya == null ? -1 : ya); }
+    return (x < y ? -1 : 1) * state.dir;
+  });
+  return r;
+}
+function renderScreen() {
+  const r = rowsFiltered(); state.list = r;
+  const pages = Math.max(1, Math.ceil(r.length / PAGE)); state.page = Math.min(state.page, pages - 1);
+  const rows = r.slice(state.page * PAGE, state.page * PAGE + PAGE);
+  const th = (k, l) => `<th data-s="${k}">${l}${state.sort === k ? (state.dir > 0 ? " ▲" : " ▼") : ""}</th>`;
+  $("#app").innerHTML = `
+  <div class="panel">
+    <div class="row">
+      <input type="search" id="fq" placeholder="ค้นหา ticker เช่น TISCO" value="${esc(state.q)}">
+      <select id="fv"><option value="all">คำตัดสินทั้งหมด</option><option>Pass</option><option>Needs clarification</option><option>Reject</option></select>
+      <select id="fg"><option value="all">ทุกกลุ่ม (sector)</option><option value="fin">กลุ่มการเงิน (Financial Services)</option><option value="gen">กลุ่มทั่วไป</option></select>
+      <label class="ck"><input type="checkbox" id="f1"> จ่ายปันผลปกติครบ 3 ปี (G1 ผ่าน)</label>
+      <span class="sp"></span><span class="help">พบ ${r.length} จาก ${KEYS.length} ตัว</span>
+    </div>
+    <div class="tw"><table><thead><tr>${th("ticker","หุ้น (Ticker)")}${th("ry","Reported yield")}${th("ny","Normalized yield")}${th("po","Payout 3 ปี")}${th("fc","FCF cover 3 ปี")}<th>G1</th><th>G2</th><th>G3</th>${th("verdict","คำตัดสิน (Verdict)")}</tr></thead>
+    <tbody>${rows.map(k => { const s = ST[k], m = s.metrics, g = s.gates; const gi = x => `<span class="${x.result}" title="${esc(x.formula)}">${x.result === "pass" ? "✓" : x.result === "fail" ? "✗" : "?"}</span>`;
+      return `<tr data-tk="${k}"><td><b>${sym(k)}</b>${s.financial_services ? ' <span class="help">การเงิน</span>' : ""}</td><td>${show(m.reported_yield,"pct")}</td><td>${show(m.normalized_yield,"pct")}</td><td>${show(m.payout_3y,"pct")}</td><td>${show(m.fcf_cover_3y,"x")}</td><td>${gi(g.G1)}</td><td>${gi(g.G2)}</td><td>${gi(g.G3)}</td><td><span class="badge ${vcls(s.verdict.result)}">${s.verdict.result}</span></td></tr>`; }).join("")}</tbody></table></div>
+    <div class="row" style="margin-top:10px"><button id="pp" ${state.page === 0 ? "disabled" : ""}>‹ ก่อนหน้า</button><span class="help">หน้า ${state.page + 1} / ${pages}</span><button id="pn" ${state.page >= pages - 1 ? "disabled" : ""}>ถัดไป ›</button><span class="help">คลิกแถวเพื่อดูรายละเอียด 4 ขั้น</span></div>
+  </div>`;
+  $("#fv").value = state.verdict; $("#fg").value = state.grp; $("#f1").checked = state.g1;
+  $("#fq").oninput = e => { state.q = e.target.value; state.page = 0; renderScreen(); const i = $("#fq"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); };
+  $("#fv").onchange = e => { state.verdict = e.target.value; state.page = 0; renderScreen(); };
+  $("#fg").onchange = e => { state.grp = e.target.value; state.page = 0; renderScreen(); };
+  $("#f1").onchange = e => { state.g1 = e.target.checked; state.page = 0; renderScreen(); };
+  $("#pp").onclick = () => { state.page--; renderScreen(); }; $("#pn").onclick = () => { state.page++; renderScreen(); };
+  document.querySelectorAll("th[data-s]").forEach(h => h.onclick = () => { const s = h.dataset.s; if (state.sort === s) state.dir *= -1; else { state.sort = s; state.dir = (s === "verdict" || s === "ticker") ? 1 : -1; } renderScreen(); });
+  document.querySelectorAll("tr[data-tk]").forEach(t => t.onclick = () => openStock(t.dataset.tk));
+}
+
+/* ---------- หน้าหุ้น ---------- */
+let charts = [];
+const cv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function openStock(tk) { state.view = "stock"; state.tk = tk; state.step = 1; renderStock(); window.scrollTo(0, 0); }
+function renderStock() {
+  charts.forEach(c => c.destroy()); charts = [];
+  const tk = state.tk, s = ST[tk], m = s.metrics, g = s.gates, L = s.latest_fy, years = Object.keys(s.years).sort(), y3 = years.slice(-3);
+  const i = state.list.indexOf(tk);
+  const gate = (k, name) => { const x = g[k]; const lbl = { pass:"ผ่าน", fail:"ไม่ผ่าน", unknown:"ตัดสินไม่ได้" }[x.result]; return `<div class="gate"><div class="res ${x.result}">${k} · ${name} — ${lbl}</div><div class="mono">${esc(x.formula)}</div>${x.reason ? `<div class="nd">${esc(x.reason)}</div>` : ""}</div>`; };
+  $("#app").innerHTML = `
+  <div class="row" style="margin:14px 0 4px"><button id="back">← Screener (S)</button><button id="prev">[ ก่อนหน้า</button><button id="next">ถัดไป ]</button>
+    <span class="help">${i >= 0 ? `ลำดับ ${i + 1} / ${state.list.length}` : ""}</span></div>
+  <div class="row" style="margin:8px 0"><h2 style="margin:0;font-size:1.6rem">${sym(tk)}</h2><span class="badge ${vcls(s.verdict.result)}">${s.verdict.result}</span>
+    <span class="chip">ปีบัญชีล่าสุด FY${L} (สิ้นเดือน ${s.fiscal_year_end_month})</span><span class="chip">${s.financial_services ? "กลุ่มการเงิน (Financial Services)" : "กลุ่มทั่วไป"}</span><span class="chip">งบ${s.basis === "Consolidated" ? "รวม" : "เดี่ยว"}</span></div>
+  <div class="steps" id="stepbar">${[1,2,3,4].map(n => `<button data-st="${n}" class="${n === state.step ? "on" : ""}">${n}. ${["Yield","Payout & FCF","เกณฑ์ G1–G3","คำตัดสิน"][n-1]}</button>`).join("")}</div>
+
+  <section class="panel step" id="s1"><h2>ขั้นที่ 1 · Reported vs Normalized yield (ผลตอบแทนปันผล)</h2>
+    <p class="sub">Reported นับปันผลทุกครั้ง · Normalized ไม่รวมปันผลที่อาจเป็นพิเศษ</p>
+    <div class="grid"><div class="kpi"><div class="l">Reported yield</div><div class="big">${show(m.reported_yield,"pct")}</div>${cellNull(m.reported_yield)}</div>
+      <div class="kpi"><div class="l">Normalized yield</div><div class="big">${show(m.normalized_yield,"pct")}</div>${cellNull(m.normalized_yield)}</div>
+      <div class="kpi"><div class="l">Yield หลังภาษี 10% (After-tax)</div><div class="big">${show(m.after_tax_yield,"pct")}</div>${cellNull(m.after_tax_yield)}</div>
+      <div class="kpi"><div class="l">ราคา (บาท) / พันธบัตร 10 ปี</div><div class="big">${show(m.price,"n",2)}</div>${s.price_note ? `<div class="unknown" style="font-size:.8rem">⚠ ${esc(s.price_note)}</div>` : ""}<div class="help">พันธบัตร 10 ปี ${DATA.meta.th10y.yield_pct != null ? nf(DATA.meta.th10y.yield_pct, 3) + "% ต่อปี" : "No data"}</div></div></div>
+    <h3 style="font-size:.95rem;margin:16px 0 6px">ปันผลต่อหุ้นรายปีผลประกอบการ (DPS, บาท/หุ้น)</h3>
+    <div class="chartbox"><canvas id="c1"></canvas></div>
+    <div class="cnote">ฟ้า = ปกติ · เหลือง = อาจรวมปันผลพิเศษ (ธง HIGH) · เทา = ไม่ทราบ/ยังไม่ครบข้อมูล · ประมาณจากเดือน XD ตรวจกับประกาศ SET</div></section>
+
+  <section class="panel step" id="s2"><h2>ขั้นที่ 2 · Payout และ FCF cover (3 ปีล่าสุด)</h2>
+    <p class="sub">Payout = ปันผลปกติเฉลี่ยเทียบกำไรต่อหุ้น · FCF cover = กระแสเงินสดอิสระเทียบเงินปันผลที่จ่าย</p>
+    <div class="grid"><div class="kpi"><div class="l">Payout 3 ปี</div><div class="big">${show(m.payout_3y,"pct")}</div>${cellNull(m.payout_3y)}</div>
+      <div class="kpi"><div class="l">FCF cover 3 ปี</div><div class="big">${show(m.fcf_cover_3y,"x")}</div>${cellNull(m.fcf_cover_3y)}${s.financial_services ? '<div class="help">กลุ่มการเงินไม่ใช้ FCF ตัดสิน (ใช้ ส่วนของผู้ถือหุ้น/สินทรัพย์)</div>' : ""}</div>
+      <div class="kpi"><div class="l">FCF รวม 3 ปี (ล้านบาท)</div><div class="big">${show(m.fcf_3y_m,"m")}</div>${cellNull(m.fcf_3y_m)}</div>
+      <div class="kpi"><div class="l">ปันผลปกติรวม 3 ปี (ล้านบาท)</div><div class="big">${show(m.dividends_3y_m,"m")}</div>${cellNull(m.dividends_3y_m)}</div></div>
+    <h3 style="font-size:.95rem;margin:16px 0 6px">FCF เทียบเงินปันผลปกติ (ล้านบาท)</h3>
+    <div class="chartbox"><canvas id="c2"></canvas></div><div class="cnote">จำนวนหุ้นคำนวณจากกำไรส่วนบริษัทใหญ่ ÷ EPS (ประมาณ) [ยังไม่ยืนยัน] · ปีที่ไม่มีข้อมูลไม่แสดงแท่ง</div></section>
+
+  <section class="panel step" id="s3"><h2>ขั้นที่ 3 · เกณฑ์ G1–G3</h2><p class="sub">ไม่ผ่านข้อใด = Reject · ตัดสินไม่ได้ = Needs clarification</p>
+    <div class="grid">${gate("G1","จ่ายปันผลปกติครบทุกปีใน 3 ปีล่าสุด")}${gate("G2","Normalized EPS ล่าสุด > 0")}${gate("G3", s.financial_services ? "ส่วนของผู้ถือหุ้น/สินทรัพย์ ≥ 6% (กลุ่มการเงิน)" : "FCF 3 ปี > 0 และ > ปันผลปกติ 3 ปี")}</div></section>
+
+  <section class="panel step" id="s4"><h2>ขั้นที่ 4 · คำตัดสิน (Verdict)</h2>
+    <div class="big ${vcls(s.verdict.result)}">${s.verdict.result}</div>
+    ${s.verdict.reasons.length ? `<p class="sub" style="margin-top:10px">เหตุผล:</p><ul class="rs">${s.verdict.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : `<p class="sub" style="margin-top:10px">ผ่านทุกเกณฑ์ (payout ≤ 100%, FCF cover ≥ 1.0 เมื่อใช้ และไม่มีธง HIGH)</p>`}
+    <h3 style="font-size:.95rem;margin:16px 0 4px">แหล่งข้อมูล</h3>
+    <ul class="rs"><li>งบการเงิน: ${esc(s.sources.financials)}</li><li>ราคา: ${esc(s.sources.price)}</li><li>ปันผล (XD, DPS): ${esc(s.sources.dividends)}</li><li>พันธบัตร 10 ปี: ${esc(DATA.meta.th10y.source)}</li></ul>
+    <h3 style="font-size:.95rem;margin:16px 0 4px">ข้อสังเกตของการคำนวณ</h3><ul class="rs">${DATA.meta.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>
+    <p class="help">หน่วย: ${esc(DATA.meta.units)}</p></section>`;
+  $("#back").onclick = goScreen; $("#prev").onclick = () => nav(-1); $("#next").onclick = () => nav(1);
+  document.querySelectorAll("#stepbar button").forEach(b => b.onclick = () => gotoStep(+b.dataset.st));
+  drawCharts(s, years, y3); applyStep();
+}
+function drawCharts(s, years, y3) {
+  if (typeof Chart === "undefined") { $("#c1").parentNode.innerHTML = '<div class="nd">โหลด Chart.js ไม่ได้ (ต้องต่ออินเทอร์เน็ต) ตัวเลขด้านบนยังใช้งานได้</div>'; $("#c2").parentNode.innerHTML = '<div class="nd">โหลด Chart.js ไม่ได้</div>'; return; }
+  const ink = cv("--ink"), mute = cv("--mute"), line = cv("--line");
+  Chart.defaults.color = mute; Chart.defaults.borderColor = line;
+  const Y = s.years;
+  const normal = years.map(y => Y[y].dps_normal != null ? Y[y].dps_normal : null);
+  const special = years.map(y => Y[y].high_flag && Y[y].dps_reported != null ? Y[y].dps_reported : null);
+  const unknown = years.map(y => Y[y].dps_normal == null && !Y[y].high_flag ? 0 : null);
+  charts.push(new Chart($("#c1"), { type:"bar", data:{ labels:years.map(y => "FY" + y), datasets:[
+      { label:"ปกติ", data:normal, backgroundColor:cv("--c1") }, { label:"อาจรวมพิเศษ (HIGH)", data:special, backgroundColor:cv("--c2") },
+      { label:"ไม่ทราบ (No data)", data:unknown, backgroundColor:cv("--c3"), borderColor:cv("--c3"), borderWidth:2 } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:ink } }, tooltip:{ callbacks:{ afterBody: c => { const y = years[c[0].dataIndex]; return Y[y].dps_status ? "สถานะ: " + Y[y].dps_status : ""; } } } },
+      scales:{ x:{ stacked:true }, y:{ stacked:true, title:{ display:true, text:"บาท/หุ้น" } } } } }));
+  charts.push(new Chart($("#c2"), { type:"bar", data:{ labels:y3.map(y => "FY" + y), datasets:[
+      { label:"FCF (ล้านบาท)", data:y3.map(y => Y[y].fcf_m), backgroundColor:cv("--c1") },
+      { label:"เงินปันผลปกติ (ล้านบาท)", data:y3.map(y => Y[y].dividend_normal_m), backgroundColor:cv("--c2") } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:ink } } }, scales:{ y:{ title:{ display:true, text:"ล้านบาท" } } } } }));
+}
+function applyStep() {
+  document.querySelectorAll(".step").forEach(el => el.classList.toggle("cur", state.pres ? el.id === "s" + state.step : false));
+  document.querySelectorAll("#stepbar button").forEach(b => b.classList.toggle("on", +b.dataset.st === state.step));
+}
+function gotoStep(n) { state.step = n; applyStep(); if (!state.pres) { const el = $("#s" + n); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); } else window.scrollTo(0, 0); }
+function nav(d) { const i = state.list.indexOf(state.tk); const j = i + d; if (i < 0 || j < 0 || j >= state.list.length) return; openStock(state.list[j]); }
+function goScreen() { state.view = "screen"; charts.forEach(c => c.destroy()); charts = []; renderScreen(); }
+
+/* ---------- ส่วนควบคุม ---------- */
+function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem("dd-theme", t); } catch (e) {} if (state.view === "stock") renderStock(); }
+function togglePres() { state.pres = !state.pres; document.body.classList.toggle("pres", state.pres); $("#bPres").classList.toggle("on", state.pres); if (state.view === "stock") { state.step = 1; applyStep(); } else if (state.pres && state.list.length) openStock(state.list[0]); }
+$("#bScreen").onclick = goScreen; $("#bPres").onclick = togglePres;
+$("#bTheme").onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target.tagName; if (t === "INPUT" || t === "SELECT" || t === "TEXTAREA") return;
+  const k = e.key.toLowerCase();
+  if (k === "s") goScreen(); else if (k === "t") $("#bTheme").click(); else if (k === "p") togglePres();
+  else if (k === "[" && state.view === "stock") nav(-1); else if (k === "]" && state.view === "stock") nav(1);
+  else if (["1","2","3","4"].includes(k) && state.view === "stock") gotoStep(+k);
+});
+(function init() {
+  try { const t = localStorage.getItem("dd-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  const M = DATA.meta, withData = KEYS.filter(k => ST[k].metrics.price.value != null).length;
+  $("#cPrice").innerHTML = `ราคา ณ <b>${esc(M.price_date)}</b>`;
+  $("#cBond").innerHTML = `พันธบัตร 10 ปี <b>${M.th10y.yield_pct != null ? nf(M.th10y.yield_pct, 3) + "%" : "No data"}</b> (${esc(M.th10y.date)})`;
+  $("#cCount").innerHTML = `หุ้นทั้งหมด <b>${KEYS.length}</b> · มีราคา <b>${withData}</b> · Pass ${M.verdict_counts.Pass || 0} · NC ${M.verdict_counts["Needs clarification"] || 0} · Reject ${M.verdict_counts.Reject || 0}`;
+  renderScreen();
+})();
+</script>
+</body>
+</html>
