@@ -43,7 +43,7 @@ def analyse(df):
     r, k, dd = R.iloc[-1], K.iloc[-1], D.iloc[-1]
     s_rsi = None if pd.isna(r) else (1 if r < 30 else -1 if r > 70 else 0)
     s_sto = None if pd.isna(k) else (1 if sx and sx[0] == "up" and sx[1] < 20 else -1 if sx and sx[0] == "down" and sx[1] > 80 else 0)
-    s_ema = None if pd.isna(diff.iloc[-1]) else (1 if cross and cross["type"] == "golden" and cross["bars_ago"] <= 5 else -1 if cross and cross["type"] == "death" and cross["bars_ago"] <= 5 else 0)
+    s_ema = None if pd.isna(diff.iloc[-1]) else (1 if diff.iloc[-1] > 0 else -1)
     trend = None if pd.isna(diff.iloc[-1]) else (1 if diff.iloc[-1] > 0 else -1)
     sig = [s for s in (s_rsi, s_sto, s_ema) if s is not None]
     score = sum(sig) if sig else None
@@ -55,8 +55,8 @@ def analyse(df):
         "stoch_k": None if pd.isna(k) else round(float(k), 1), "stoch_d": None if pd.isna(dd) else round(float(dd), 1),
         "ema12": round(float(e12.iloc[-1]), 3), "ema26": round(float(e26.iloc[-1]), 3),
         "trend": trend, "cross": cross,
-        "sig": {"rsi": s_rsi, "stoch": s_sto, "ema": s_ema}, "score": score,
-        "verdict": None if score is None else ("Buy" if score >= 1 else "Sell" if score <= -1 else "Neutral"),
+        "fresh": bool(cross and cross["bars_ago"] <= 5), "sig": {"rsi": s_rsi, "stoch": s_sto, "ema": s_ema}, "score": score,
+        "verdict": None if s_ema is None else ("Buy" if s_ema > 0 else "Sell"),
         "chart": {"d": [x.strftime("%Y-%m-%d") for x in t.index], "c": f(t["Close"]), "e12": f(e12), "e26": f(e26)},
     }
 

@@ -28,10 +28,7 @@ ul{margin:6px 0 0;padding-left:20px;color:var(--mute);font-size:13px}
 
 <div class="card"><h2>สรุปสัญญาณ (คลิกแถวเพื่อดูกราฟ)</h2>
 <div class="scroll"><table id="tbl"></table></div>
-<ul><li>EMA: 12 ตัดขึ้น 26 ภายใน 5 แท่งล่าสุด = Buy, ตัดลง = Sell · ถ้าตัดนานแล้วแสดงเป็นแนวโน้ม ▲/▼</li>
-<li>RSI(14): &lt;30 = Buy (oversold), &gt;70 = Sell (overbought)</li>
-<li>Stoch(14,3,3): %K ตัดขึ้น %D ภายใน 3 แท่งและ %K &lt;20 = Buy · ตัดลงและ &gt;80 = Sell</li>
-<li>สรุปแต่ละกรอบเวลา = รวมคะแนน 3 ตัว (Buy +1 / Sell −1) · ≥+1 Buy, ≤−1 Sell, นอกนั้น Neutral · แท่ง W/M ล่าสุดอาจยังไม่ปิด</li></ul></div>
+<ul><li>สัญญาณ = EMA 12 เทียบ EMA 26: 12 อยู่เหนือ 26 (ตัดขึ้น) = Buy · 12 อยู่ใต้ 26 (ตัดลง) = Sell · ติดป้าย "ตัดใหม่" ถ้าเพิ่งตัดภายใน 5 แท่ง</li><li>RSI และ %K/%D แสดงไว้ดูประกอบ ไม่นับในสัญญาณ</li>
 
 <div class="card"><h2 id="ct">กราฟ</h2>
 <div class="tabs" id="tabs"></div><div id="chart"></div>
@@ -53,7 +50,7 @@ function cell(r){
   if(!r)return '<td colspan="4" class="nd">No data</td>';
   const rc=r.rsi>=70?"ob":r.rsi<=30?"os":"";
   const cr=r.cross?(r.cross.type=="golden"?"▲ ":"▼ ")+r.cross.date:"-";
-  return `<td><span class="b ${r.verdict}">${r.verdict}</span></td><td class="num ${rc}">${fmt(r.rsi)}</td><td class="num">${fmt(r.stoch_k,0)}/${fmt(r.stoch_d,0)}</td><td class="num" title="${cr}">${r.trend>0?"▲":"▼"}${r.cross&&r.cross.bars_ago<=5?" ตัดล่าสุด":""}</td>`;
+  return `<td><span class="b ${r.verdict}">${r.verdict}</span></td><td class="num ${rc}">${fmt(r.rsi)}</td><td class="num">${fmt(r.stoch_k,0)}/${fmt(r.stoch_d,0)}</td><td title="${cr}"><span class="b ${r.sig.ema>0?'Buy':'Sell'}">${r.sig.ema>0?"Buy":"Sell"}</span>${r.fresh?" <small>ตัดใหม่</small>":""}</td>`;
 }
 function table(){
   let h='<tr><th class="l" rowspan="2">ETF</th><th rowspan="2">ราคา</th>';
