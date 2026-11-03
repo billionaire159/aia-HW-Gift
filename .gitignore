@@ -23,3 +23,8 @@ __pycache__/
 venv/
 node_modules/
 .claude/settings.local.json
+
+# Dividend data derived from SETSMART: not for public repo
+dividend/metrics.json
+dividend/dashboard.html
+etf/__pycache__/
