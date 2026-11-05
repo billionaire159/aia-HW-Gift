@@ -8,8 +8,8 @@
 
 ## ดูผลงาน (กดได้เลย)
 
-- **Dashboard ETF (เปิดดูหน้าจริง):** https://claude.ai/artifact/Js6c48VgtbjQ28LHZvRvaQ
-- ไฟล์ dashboard บน GitHub (เป็นโค้ด): [etf/etf_dashboard.html](etf/etf_dashboard.html)
+- **Dashboard ETF (เปิดดูหน้าจริง):** https://billionaire159.github.io/aia-HW-Gift/output/etf_dashboard.html
+- ไฟล์ dashboard ใน repo: [output/etf_dashboard.html](output/etf_dashboard.html) (โค้ดที่สร้างอยู่ใน [etf/](etf/))
 - บันทึกขั้นตอนทำงาน: [prompts.md](prompts.md)
 - ปัญหาที่เจอและบทเรียน: [PROJECT_MEMORY.md](PROJECT_MEMORY.md)
 
